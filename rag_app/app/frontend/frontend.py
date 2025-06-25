@@ -1,5 +1,13 @@
 import streamlit as st
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
+
+from app.backend.core.retriever import RAGRetriever
+
+
+retriever = RAGRetriever()
 # Page setup
 st.set_page_config(page_title="AI Tutor", page_icon="💬", layout="centered")
 
@@ -19,6 +27,14 @@ if "messages" not in st.session_state:
         {"role": "bot", "text": "Hello! How can I assist you today?"}
     ]
 
+# Chat input
+user_input = st.chat_input(f"Type your message in {input_lang}...")
+
+# Check to make sure user input is valid, also displays input immediately in chat
+if user_input and len(user_input.strip()) >= 2:
+    st.session_state.messages.append({"role": "user", "text": user_input})
+    st.rerun()
+
 # Display chat history
 for msg in st.session_state.messages:
     align = "flex-start" if msg["role"] == "bot" else "flex-end"
@@ -34,15 +50,26 @@ for msg in st.session_state.messages:
         unsafe_allow_html=True
     )
 
-# Chat input
-with st.form(key="chat_form", clear_on_submit=True):
-    user_input = st.text_input(f"Type your message in {input_lang}...", label_visibility="collapsed")
-    submit_button = st.form_submit_button("Send")
+st.markdown("""
+    <script>
+        var chatContainer = window.parent.document.querySelector('.main');
+        if (chatContainer) {
+            chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
+        }
+    </script>
+""", unsafe_allow_html=True)
 
-if submit_button and user_input:
-    # Add user message
-    st.session_state.messages.append({"role": "user", "text": user_input})
+# Process user input, calls retriever to generate response
+if len(st.session_state.messages) >= 2 and st.session_state.messages[-1]["role"] == "user":
+    user_input = st.session_state.messages[-1]["text"]
+    
+    with st.spinner("Thinking..."):
+        try:
+            result = retriever.get_response(user_input)
+            answer = result.get("answer", "Sorry, I couldn't generate an answer.")
+            full_response = f"(Responding in {output_lang}) {answer}"
+        except Exception as e:
+            full_response = f"There was an error: {e}"
 
-    # Placeholder response — would normally include translation and LLM logic
-    response = f"(Responding in {output_lang}) Sure, I'd be happy to help!"
-    st.session_state.messages.append({"role": "bot", "text": response})
+    st.session_state.messages.append({"role": "bot", "text": full_response})
+    st.rerun()
