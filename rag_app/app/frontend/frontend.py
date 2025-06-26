@@ -5,7 +5,15 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 
 
 from app.backend.core.retriever import RAGRetriever
+from app.backend.translator.translator import translate
 
+lang_map = {
+    "English" : "en",
+    "Spanish" : "es",
+    "Hindi" : "hi",
+    "French" : "fr",
+    "Chinese" : "zh"
+}
 
 retriever = RAGRetriever()
 # Page setup
@@ -30,9 +38,11 @@ if "messages" not in st.session_state:
 # Chat input
 user_input = st.chat_input(f"Type your message in {input_lang}...")
 
+
 # Check to make sure user input is valid, also displays input immediately in chat
 if user_input and len(user_input.strip()) >= 2:
     st.session_state.messages.append({"role": "user", "text": user_input})
+    # translated_input = translate(user_input, src_lang=input_lang.lower(), tgt_lang="en")
     st.rerun()
 
 # Display chat history
@@ -61,13 +71,18 @@ st.markdown("""
 
 # Process user input, calls retriever to generate response
 if len(st.session_state.messages) >= 2 and st.session_state.messages[-1]["role"] == "user":
-    user_input = st.session_state.messages[-1]["text"]
+    raw_user_input = st.session_state.messages[-1]["text"]
+    src = lang_map.get(input_lang, "en")
+    tgt = lang_map.get(output_lang, "en")
+    translated_input = translate(raw_user_input, src_lang=src, tgt_lang="en")
     
     with st.spinner("Thinking..."):
         try:
-            result = retriever.get_response(user_input)
+            result = retriever.get_response(translated_input)
             answer = result.get("answer", "Sorry, I couldn't generate an answer.")
-            full_response = f"(Responding in {output_lang}) {answer}"
+
+            translated_answer = translate(answer, src_lang="en", tgt_lang=tgt)
+            full_response = f"(Responding in {output_lang}) {translated_answer}"
         except Exception as e:
             full_response = f"There was an error: {e}"
 
