@@ -1,8 +1,11 @@
 from langchain_community.llms import Ollama
 from langchain.chains import RetrievalQA
-from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_ollama import OllamaLLM
+# from langchain_chroma import Chroma 
+from langchain_community.vectorstores import Chroma
+# from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
+# from langchain_ollama import OllamaLLM
+from langchain_community.llms import Ollama
 import os
 
 class RAGRetriever:
@@ -24,7 +27,7 @@ class RAGRetriever:
         self.vectorstore = Chroma(persist_directory=vectorstore_dir, embedding_function=self.embedding)
 
         # Use Mistral via Ollama
-        self.llm = OllamaLLM(model="mistral")
+        self.llm = Ollama(model="mistral")
 
         # Set up RAG chain with improved retriever configuration
         self.retriever = self.vectorstore.as_retriever(

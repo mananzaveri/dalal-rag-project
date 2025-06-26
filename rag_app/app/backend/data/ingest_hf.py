@@ -2,8 +2,11 @@ from datasets import load_dataset
 from langchain.docstore.document import Document
 from typing import List, Dict, Tuple, Set
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
+# from langchain_huggingface import HuggingFaceEmbeddings
+from langchain.embeddings import HuggingFaceEmbeddings
+# from langchain_chroma import Chroma
+from langchain.vectorstores import Chroma
+
 import os
 
 
