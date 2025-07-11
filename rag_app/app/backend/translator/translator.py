@@ -1,22 +1,22 @@
-from transformers import MarianMTModel, MarianTokenizer
+from deep_translator import GoogleTranslator
 
-translation_models = {}
-
-def load_model(src_lang, tgt_lang):
-    model_name = f"Helsinki-NLP/opus-mt-{src_lang}-{tgt_lang}"
-    if model_name not in translation_models:
-        tokenizer = MarianTokenizer.from_pretrained(model_name)
-        model = MarianMTModel.from_pretrained(model_name)
-        translation_models[model_name] = (tokenizer, model)
-    return translation_models[model_name]
+lang_map = {
+    "english": "english",
+    "spanish": "spanish",
+    "hindi": "hindi",
+    "french": "french",
+    "chinese": "chinese",
+    "gujarati": "gujarati",
+    "thai": "thai"
+}
 
 def translate(text, src_lang, tgt_lang):
-    if src_lang == tgt_lang:
+    src = lang_map.get(src_lang.lower(), "english")
+    tgt = lang_map.get(tgt_lang.lower(), "english")
+
+    if src == tgt or not text.strip():
         return text
     try:
-        tokenizer, model = load_model(src_lang, tgt_lang)
-        tokens = tokenizer.prepare_seq2seq_batch([text], return_tensors="pt", padding=True)
-        output = model.generate(**tokens)
-        return tokenizer.decode(output[0], skip_special_tokens=True)
+        return GoogleTranslator(source=src, target=tgt).translate(text)
     except Exception as e:
         return f"[Translation error: {e}]"

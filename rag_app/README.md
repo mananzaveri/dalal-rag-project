@@ -31,6 +31,9 @@ source venv/bin/activate
 ## Step 3: Install Dependencies
 
 ```bash
+# Navigate to the rag_app directory
+cd rag_app
+
 # Make sure your virtual environment is activated
 pip install -r requirements.txt
 ```
@@ -48,8 +51,6 @@ pip install -r requirements.txt
 The application uses a vectorstore to store and retrieve document embeddings. You need to run the ingestion script to populate it:
 
 ```bash
-# Navigate to the rag_app directory
-cd rag_app
 
 # Run the ingestion script
 python app/backend/data/ingest_hf.py
