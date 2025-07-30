@@ -1,6 +1,7 @@
 import streamlit as st
 import sys
 import os
+import pyperclip
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
@@ -44,22 +45,53 @@ if user_input and len(user_input.strip()) >= 2:
     st.session_state.pending_output_lang = output_lang
     st.rerun()
 
-# Display chat history
-for msg in st.session_state.messages:
-    align = "flex-start" if msg["role"] == "bot" else "flex-end"
-    color = "#2146db" if msg["role"] == "bot" else "#569aec"
-    st.markdown(
-        f"""
-        <div style='display:flex; justify-content:{align}; margin-bottom:10px;'>
-            <div style='background-color:{color}; padding:10px 15px; border-radius:10px; max-width:70%; color:white;'>
-                {msg["text"]}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+# Display chat history with copy buttons
+# Display chat history with proper alignment and simple copy
+for i, msg in enumerate(st.session_state.messages):
+    if msg["role"] == "bot":
+        # Clean text for copying (remove language prefix)
+        clean_text = msg["text"]
+        if clean_text.startswith("(") and ")" in clean_text:
+            clean_text = clean_text.split(")", 1)[1].strip()
+        
+        # Bot message aligned left with copy button
+        col1, col2, col3 = st.columns([8, 1, 3])  # Message, button, spacer
+        
+        with col1:
+            st.markdown(
+                f"""
+                <div style='background-color:#2146db; padding:15px; border-radius:10px; color:white; margin-bottom:10px;'>
+                    {msg["text"]}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        
+        with col2:
+            copy_key = f"copy_{i}_{hash(msg['text']) % 10000}"
+            if st.button("📋", key=copy_key, help="Copy to clipboard"):
+                try:
+                    pyperclip.copy(clean_text)
+                    st.success("✅")
+                except Exception as e:
+                    st.error("❌ Copy failed")
+                    
+    else:
+        # User message aligned right
+        col1, col2 = st.columns([3, 8])  # Spacer, message
+        
+        with col2:
+            st.markdown(
+                f"""
+                <div style='display:flex; justify-content:flex-end; margin-bottom:10px;'>
+                    <div style='background-color:#569aec; padding:10px 15px; border-radius:10px; max-width:100%; color:white;'>
+                        {msg["text"]}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
-# Process response
 # Process response
 if "pending_input" in st.session_state:
     with st.spinner("Thinking..."):
@@ -87,7 +119,9 @@ if "pending_input" in st.session_state:
         del st.session_state["pending_input"]
         del st.session_state["pending_output_lang"]
         st.rerun()
-        
+
+
+# Smooth autoscroll to bottom of chat
 st.markdown("""
 <script>
     var chatContainer = window.parent.document.querySelector('.main');
