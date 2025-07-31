@@ -45,7 +45,6 @@ if user_input and len(user_input.strip()) >= 2:
     st.session_state.pending_output_lang = output_lang
     st.rerun()
 
-# Display chat history with copy buttons
 # Display chat history with proper alignment and simple copy
 for i, msg in enumerate(st.session_state.messages):
     if msg["role"] == "bot":
